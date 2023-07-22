@@ -1,25 +1,87 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import AddProduct from './components/AddProduct';
+import Cart from './components/cart';
+import Main from './components/Main';
+import Navbar from './components/Navbar';
+import ProductDetails from './components/Pdp';
+import ToastNotification from './components/ToastNotification';
+import { addcartItem } from './Redux/CartSlice';
 
-function App() {
+const App = () => {
+  const [cart, setCart] = useState([]);
+  const [productDetailspage, setProductDetailspage] = useState();
+  const dispatch = useDispatch();
+
+  const handleClick = (e, item) => {
+    if (cart.indexOf(item) !== -1) return;
+    setCart([...cart, item]);
+    try {
+      dispatch(addcartItem(item));
+      toast.success(`Added to Cart`);
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const handleChange = (item, d) => {
+    const ind = cart.indexOf(item);
+    const arr = cart;
+    arr[ind].amount += d;
+
+    if (arr[ind].amount === 0) arr[ind].amount = 1;
+    setCart([...arr]);
+  };
+
+  const handlePdp = (e, item) => {
+    console.log(`item of pdp`, item);
+    setProductDetailspage(item);
+  };
+  console.log(`productDetailspage`, productDetailspage);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+      <Router>
+        <Navbar />
+        <div className="container">
+          <Routes>
+            <Route
+              exact
+              path="/"
+              element={<Main handleClick={handleClick} handlePdp={handlePdp} />}
+            ></Route>
+
+            <Route
+              exact
+              path="/cart"
+              element={
+                <Cart
+                  cart={cart}
+                  setCart={setCart}
+                  handleChange={handleChange}
+                />
+              }
+            ></Route>
+
+            <Route exact path="/addProduct" element={<AddProduct />}></Route>
+            <Route
+              exact
+              path="/productDetails"
+              element={
+                <ProductDetails
+                  handleClick={handleClick}
+                  productDetailspage={productDetailspage}
+                />
+              }
+            ></Route>
+          </Routes>
+          <ToastNotification />
+        </div>
+      </Router>
+    </>
   );
-}
+};
 
 export default App;
